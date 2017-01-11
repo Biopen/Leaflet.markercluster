@@ -10,6 +10,13 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 		spiderfyOnMaxZoom: true,
 		showCoverageOnHover: true,
+		spiderfyOnHover: false,
+		// spiderfy only of cluster contains less than spiderfyMaxCount markers
+		spiderfyMaxCount: Infinity,
+		// spiderfy when cluster click. Not working if spiderfyOnHover true 
+		spiderfyOnClick: false,
+		// spiderfy only if map zoom bigger than spiderfyMinZoom
+		spiderfyMinZoom: 0,
 		zoomToBoundsOnClick: true,
 		singleMarkerMode: false,
 
@@ -92,9 +99,6 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 			return this;
 		}
 
-
-		//If we have already clustered we'll need to add this one to a cluster
-
 		if (this._unspiderfy) {
 			this._unspiderfy();
 		}
@@ -122,6 +126,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 				this._animationAddLayerNonAnimated(layer, visibleLayer);
 			}
 		}
+
 		return this;
 	},
 
@@ -769,11 +774,17 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		var map = this._map,
 		    spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom,
 		    showCoverageOnHover = this.options.showCoverageOnHover,
-		    zoomToBoundsOnClick = this.options.zoomToBoundsOnClick;
+		    zoomToBoundsOnClick = this.options.zoomToBoundsOnClick,
+		    spiderfyOnClick = this.options.spiderfyOnClick,
+		    spiderfyOnHover = this.options.spiderfyOnHover;
 
-		//Zoom on cluster click or spiderfy if we are at the lowest level
-		if (spiderfyOnMaxZoom || zoomToBoundsOnClick) {
+		//Zoom on cluster click or spiderfy regardless to options
+		if (spiderfyOnMaxZoom || spiderfyOnClick || zoomToBoundsOnClick) {
 			this.on('clusterclick', this._zoomOrSpiderfy, this);
+		}
+
+		if (spiderfyOnHover) {
+			this.on('clustermouseover', this._spiderfyIfPossible, this);
 		}
 
 		//Show convex hull (boundary) polygon on mouse over
@@ -785,6 +796,16 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 	},
 
 	_zoomOrSpiderfy: function (e) {
+		var spiderfySucceed = this._spiderfyIfPossible(e);
+		if (!spiderfySucceed && this.options.zoomToBoundsOnClick) {
+			e.layer.zoomToBounds();
+		}
+	},
+
+	/**
+	* @return boolean true if spiderfy has been possible
+	*/
+	_spiderfyIfPossible: function (e) {
 		var cluster = e.layer,
 		    bottomCluster = cluster;
 
@@ -792,20 +813,29 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 			bottomCluster = bottomCluster._childClusters[0];
 		}
 
-		if (bottomCluster._zoom === this._maxZoom &&
-			bottomCluster._childCount === cluster._childCount &&
-			this.options.spiderfyOnMaxZoom) {
+		var spiderfyOnMaxZoom = bottomCluster._zoom === this._maxZoom &&
+										bottomCluster._childCount === cluster._childCount &&
+										this.options.spiderfyOnMaxZoom;
 
-			// All child markers are contained in a single cluster from this._maxZoom to this cluster.
-			cluster.spiderfy();
-		} else if (this.options.zoomToBoundsOnClick) {
-			cluster.zoomToBounds();
-		}
+		var spiderfyOnHoverOrClick = cluster._zoom >= this.options.spiderfyMinZoom &&
+									 (this.options.spiderfyOnHover || this.options.spiderfyOnClick);
+
+		
+		var spiderfyMaxCount = cluster._childCount <= this.options.spiderfyMaxCount;
 
 		// Focus the map again for keyboard users.
 		if (e.originalEvent && e.originalEvent.keyCode === 13) {
 			this._map._container.focus();
 		}
+
+		if ((spiderfyOnMaxZoom || spiderfyOnHoverOrClick) && spiderfyMaxCount) {
+
+			// All child markers are contained in a single cluster from this._maxZoom to this cluster.
+			cluster.spiderfy();
+			return true;
+		}
+
+		return false;
 	},
 
 	_showCoverage: function (e) {
@@ -833,10 +863,14 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		var spiderfyOnMaxZoom = this.options.spiderfyOnMaxZoom,
 			showCoverageOnHover = this.options.showCoverageOnHover,
 			zoomToBoundsOnClick = this.options.zoomToBoundsOnClick,
+			spiderfyOnHover = this.options.spiderfyOnHover,
 			map = this._map;
 
 		if (spiderfyOnMaxZoom || zoomToBoundsOnClick) {
 			this.off('clusterclick', this._zoomOrSpiderfy, this);
+		}
+		if (spiderfyOnHover) {
+			this.off('clustermouseover', this._spiderfyIfPossible, this);
 		}
 		if (showCoverageOnHover) {
 			this.off('clustermouseover', this._showCoverage, this);

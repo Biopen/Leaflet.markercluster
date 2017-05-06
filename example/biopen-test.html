@@ -4,6 +4,8 @@
 	<title>Leaflet debug page</title>
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0-beta.2/leaflet.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0-beta.2/leaflet.css" />
+	<link rel="stylesheet" href="styles.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.0-beta.2/leaflet.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="screen.css" />
@@ -11,6 +13,15 @@
 
 	<link rel="stylesheet" href="../dist/MarkerCluster.css" />
 	<link rel="stylesheet" href="../dist/MarkerCluster.Default.css" />
+	<style>
+		.leaflet-marker-icon.uncluster1  { color:black; }
+		.leaflet-marker-icon.uncluster2 { color:blue; }
+		.leaflet-marker-icon.uncluster3 { color:red; }
+		.leaflet-marker-icon.rotateRight { color:green; }
+		.leaflet-marker-icon.rotateLeft{ color:green; }
+		.leaflet-marker-icon.rotateSoftRight { color:green; }
+		.leaflet-marker-icon.rotateSoftLeft{ color:green; }
+	</style>
 	<script src="../dist/leaflet.markercluster-src.js"></script>
 	<script src="realworld.388.js"></script>
 
@@ -36,11 +47,7 @@
 		    spiderfyOnHover: false,
 		    spiderfyMaxCount: 8,
 		    spiderfyDistanceMultiplier: 1,
-		    maxClusterRadius: (zoom) =>
-		    {
-		    	if (zoom > 9) return 50;
-		    	else return 100;
-		    }
+		    maxClusterRadius: 50,
 		});
 
 		markerClustererGroup.on('clusterclick', function (a) {
@@ -48,12 +55,14 @@
 			console.log('cluster ' + a.layer.getAllChildMarkers().length);
 		});
 		
-		// adds the points stored into realworld.388.js
+		var innerHtml = '<div class="marker-wrapper"><div class="rotate animate icon-marker"></div><div class="iconInsideMarker-wrapper rotate"><div class="iconInsideMarker colorAs icon-attention"></div></div></div>';
 		for (var i = 0; i < addressPoints.length; i++) {
 			var a = addressPoints[i];
-			var title = a[2];
+			var title =  map.latLngToLayerPoint(new L.LatLng(a[0], a[1])).toString();		
+			
 			var marker = L.marker(new L.LatLng(a[0], a[1]), { title: title });
 			marker.bindPopup(title);
+			marker.setIcon(L.divIcon({className: 'leaflet-marker-container', html: innerHtml}));	
 			markerClustererGroup.addLayer(marker);
 		}
 

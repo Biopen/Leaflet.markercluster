@@ -48,3 +48,228 @@
     }
 
     .marker-cluster.marker-cluster-large span { line-height: 44px; }
+
+    .cluster {
+  z-index: 2; }
+
+.icon {
+  font-size: 22px;
+  color: #4A7874;
+  padding-top: 3px;
+  float: left;
+  margin-right: 1rem; }
+
+.icon.disabled {
+  color: #DFDFDF; }
+
+.leaflet-marker-container {
+  width: 0px !important;
+  height: 0px !important;
+  margin: 0 !important; }
+  .leaflet-marker-container:hover {
+    z-index: 10000000 !important; }
+
+.marker-name {
+  position: absolute;
+  white-space: nowrap;
+  opacity: .9;
+  font-size: 1rem;
+  font-family: Roboto, sans-serif;
+  border-radius: 5px;
+  padding: 5px 10px;
+  bottom: 55px;
+  left: -30px;
+  color: #dadada; }
+
+.marker-wrapper {
+  position: absolute;
+  z-index: 1;
+  height: 40px;
+  width: 40px;
+  bottom: 0px;
+  right: -20px;
+  font-size: 40px;
+  line-height: 40px;
+  opacity: .99; }
+  .marker-wrapper.disabled {
+    color: grey !important; }
+  .marker-wrapper.rotateLeft {
+    right: -8px;
+    bottom: -6px; }
+  .marker-wrapper.rotateRight {
+    right: -35px;
+    bottom: -6px; }
+  .marker-wrapper.BigSize {
+    z-index: 10000 !important;
+    -webkit-transform: scale(1.3, 1.3);
+    -moz-transform: scale(1.3, 1.3);
+    -ms-transform: scale(1.3, 1.3);
+    -o-transform: scale(1.3, 1.3);
+    transform: scale(1.3, 1.3);
+    bottom: 5px !important; }
+    .marker-wrapper.BigSize.rotateLeft {
+      right: -4px;
+      bottom: -2px  !important; }
+    .marker-wrapper.BigSize.rotateRight {
+      right: -39px;
+      bottom: -2px !important; }
+    @media only screen and (min-width: 601px) {
+      .marker-wrapper.BigSize .iconInsideMarker-wrapper {
+        left: 6px !important; } }
+  .marker-wrapper:hover {
+    cursor: pointer; }
+  .marker-wrapper .icon-marker {
+    width: inherit;
+    height: inherit;
+    line-height: inherit;
+    color: inherit;
+    position: absolute;
+    z-index: 1; }
+    .marker-wrapper .icon-marker.rotateRight {
+      -webkit-transform: rotate(45deg);
+      -moz-transform: rotate(45deg);
+      -ms-transform: rotate(45deg);
+      -o-transform: rotate(45deg);
+      transform: rotate(45deg); }
+    .marker-wrapper .icon-marker.rotateLeft {
+      -webkit-transform: rotate(-45deg);
+      -moz-transform: rotate(-45deg);
+      -ms-transform: rotate(-45deg);
+      -o-transform: rotate(-45deg);
+      transform: rotate(-45deg); }
+
+.iconInsideMarker-wrapper {
+  position: relative;
+  left: 7px;
+  z-index: 2;
+  text-align: center;
+  width: 26px;
+  height: 26px;
+  background-color: #DADADA;
+  border-radius: 50%;
+  top: 4px;
+  font-size: 18px;
+  line-height: 30px; }
+  .iconInsideMarker-wrapper.rotateRight {
+    left: 10px;
+    width: 25px;
+    height: 25px;
+    top: 5px; }
+  .iconInsideMarker-wrapper.rotateLeft {
+    left: 5px;
+    width: 25px;
+    height: 25px;
+    top: 5px; }
+
+:-moz-any(.iconInsideMarker-wrapper) {
+  top: 3px; }
+
+/* 
+html[data-useragent*='MSIE 10.0'] .iconInsideMarker-wrapper {
+  top: 2px !important;
+} */
+.iconInsideMarker.disabled {
+  color: grey !important; }
+
+.iconInsideMarker:before {
+  line-height: inherit; }
+
+.icon-plus-circle {
+  position: absolute;
+  top: -7px;
+  z-index: 3;
+  font-size: 16px;
+  right: -7px; }
+  .icon-plus-circle.rotateRight {
+    top: -7px;
+    right: -3px; }
+  .icon-plus-circle.rotateLeft {
+    top: -9px;
+    right: 3px; }
+  .icon-plus-circle:before {
+    border-radius: 50%;
+    background-color: #F1F1F1; }
+
+.marker-wrapper .icon-star-full {
+  position: absolute;
+  top: -10px;
+  z-index: 3;
+  font-size: 14px;
+  right: -2px;
+  color: #d9dad9; }
+  .marker-wrapper .icon-star-full.rotateRight {
+    top: -9px;
+    right: -5px; }
+  .marker-wrapper .icon-star-full.rotateLeft {
+    top: -10px;
+    right: 1px; }
+
+.icon-star-full:before {
+  border-radius: 50%;
+  padding: 1px;
+  padding-bottom: 2px;
+  background-color: #cc8901;
+  border: 1px solid; }
+
+.moreIconContainer {
+  display: none;
+  z-index: 10;
+  position: absolute;
+  bottom: -10px;
+  left: 30px; }
+  .moreIconContainer.rotateRight {
+    left: 39px; }
+  .moreIconContainer.rotateLeft {
+    left: 35px; }
+  .moreIconContainer .moreIconWrapper {
+    display: inline-block;
+    margin-left: 3px;
+    bottom: 10px;
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    line-height: 26px;
+    text-align: center;
+    background-color: #DADAD9;
+    border: 3px solid;
+    border-radius: 50%;
+    z-index: 10; }
+    .moreIconContainer .moreIconWrapper.disabled {
+      color: grey !important; }
+
+.halfHidden {
+  opacity: 0.6; }
+
+.marker-cluster div {
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  border-radius: 50%;
+  font: 13px sans-serif;
+  font-weight: 600;
+  color: white; }
+
+.marker-cluster.halfHidden {
+  opacity: .6 !important; }
+
+.marker-cluster.marker-cluster-small div {
+  width: 34px;
+  height: 34px;
+  background-color: rgba(243, 165, 48, 0.88); }
+  .marker-cluster.marker-cluster-small div span {
+    line-height: 34px; }
+
+.marker-cluster.marker-cluster-medium div {
+  width: 38px;
+  height: 38px;
+  background-color: rgba(235, 123, 45, 0.92); }
+  .marker-cluster.marker-cluster-medium div span {
+    line-height: 38px; }
+
+.marker-cluster.marker-cluster-large div {
+  width: 44px;
+  height: 44px;
+  background-color: rgba(210, 77, 26, 0.88); }
+  .marker-cluster.marker-cluster-large div span {
+    line-height: 44px; }

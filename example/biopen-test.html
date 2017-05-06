@@ -31,15 +31,21 @@
 		var markerClustererGroup = L.markerClusterGroup({
 		    spiderfyOnMaxZoom: false,
 		    showCoverageOnHover: false,
-		    zoomToBoundsOnClick: true,
-		    spiderfyOnHover: true,
+		    zoomToBoundsOnClick: false,
+		    animate: false,
+		    spiderfyOnHover: false,
 		    spiderfyMaxCount: 8,
 		    spiderfyDistanceMultiplier: 1,
 		    maxClusterRadius: (zoom) =>
 		    {
-		    	if (zoom > 9) return 70;
+		    	if (zoom > 9) return 50;
 		    	else return 100;
 		    }
+		});
+
+		markerClustererGroup.on('clusterclick', function (a) {
+			// a.layer is actually a cluster
+			console.log('cluster ' + a.layer.getAllChildMarkers().length);
 		});
 		
 		// adds the points stored into realworld.388.js

@@ -130,6 +130,16 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		return this;
 	},
 
+	getClusters: function () {
+		var clusters = [];
+		this._featureGroup.eachLayer(function (c) {
+			if (c instanceof L.MarkerCluster) {
+				clusters.push(c);
+			}
+		});
+		return clusters;
+	},
+
 	removeLayer: function (layer) {
 
 		if (layer instanceof L.LayerGroup) {
@@ -297,6 +307,8 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 				needsClustering.push(m);
 			}
 		}
+		this._checkForUncletering();
+
 		return this;
 	},
 
@@ -883,8 +895,9 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		if (!this._map) { //May have been removed from the map by a zoomEnd handler
 			return;
 		}
+		this._restoreUnclusters();
 		this._mergeSplitClusters();
-
+		this._checkForUncletering();
 		this._zoom = Math.round(this._map._zoom);
 		this._currentShownBounds = this._getExpandedVisibleBounds();
 	},
@@ -898,6 +911,8 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 		this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds, this._zoom, newBounds);
 		this._topClusterLevel._recursivelyAddChildrenToMap(null, Math.round(this._map._zoom), newBounds);
+
+		this._checkForUncletering();
 
 		this._currentShownBounds = newBounds;
 		return;
@@ -1045,6 +1060,28 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		} else {
 			this._moveEnd();
 		}
+	},
+
+	_restoreUnclusters: function ()
+	{
+		console.log("restore clusters", this._unclusters.length);
+		for (var i = this._unclusters.length - 1; i >= 0; i--) {
+			this._unclusters[i].restoreCluster();
+		}
+		this._unclusters = [];
+	},
+
+	_checkForUncletering: function ()
+	{
+		var bounds = this._getExpandedVisibleBounds();
+		var mapZoom = this._map.getZoom();
+
+		this._featureGroup.eachLayer(function (c) {
+			if (c instanceof L.MarkerCluster && bounds.contains(c._latlng) && c._zoom === mapZoom /*&& !c._isSingleParent()*/ && c.getAllChildMarkers().length < 4) {
+				c.uncluster();
+			}
+		});
+		console.log("uncluster", this._unclusters.length);
 	},
 
 	//Gets the maps visible bounds expanded in each direction by the size of the screen (so the user cannot see an area we do not cover in one pan)

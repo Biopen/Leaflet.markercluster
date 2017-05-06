@@ -299,6 +299,40 @@ L.MarkerCluster = L.Marker.extend({
 		);
 	},
 
+	uncluster: function ()
+	{
+		var markers = this.getAllChildMarkers();
+		this.clusterHide();
+
+		//console.log("uncluster, childMarker", markers.length);
+		for (var i = markers.length - 1; i >= 0; i--)
+		{
+			var nm = markers[i];
+			if (nm._backupLatlng)
+			{
+				nm.setLatLng(nm._backupLatlng);
+				delete nm._backupLatlng;
+			}
+			//console.log(nm);
+			this._group._featureGroup.addLayer(nm);
+		}
+		this._group._unclusters.push(this);
+	},
+
+	restoreCluster: function ()
+	{
+		var markers = this.getAllChildMarkers();
+		this.clusterShow();
+
+		//console.log("resotrecluster, childMarker", markers.length);
+		for (var i = markers.length - 1; i >= 0; i--)
+		{
+			var nm = markers[i];
+			//console.log(nm);
+			this._group._featureGroup.removeLayer(nm);
+		}
+	},
+
 	_recursivelyRestoreChildPositions: function (zoomLevel) {
 		//Fix positions of child markers
 		for (var i = this._markers.length - 1; i >= 0; i--) {
@@ -394,4 +428,8 @@ L.MarkerCluster = L.Marker.extend({
 		//Don't need to check this._markers as the rest won't work if there are any
 		return this._childClusters.length > 0 && this._childClusters[0]._childCount === this._childCount;
 	}
+});
+
+L.MarkerClusterGroup.include({
+	_unclusters: [],
 });

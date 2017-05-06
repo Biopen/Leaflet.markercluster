@@ -6,6 +6,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 	options: {
 		maxClusterRadius: 80, //A cluster will cover at most this many pixels from its center
+
 		iconCreateFunction: null,
 
 		spiderfyOnMaxZoom: true,
@@ -126,6 +127,8 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 				this._animationAddLayerNonAnimated(layer, visibleLayer);
 			}
 		}
+
+		this._checkForUnclestering();
 
 		return this;
 	},
@@ -271,6 +274,8 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 					this._refreshClustersIcons();
 
 					this._topClusterLevel._recursivelyAddChildrenToMap(null, this._zoom, this._currentShownBounds);
+
+					this._checkForUnclestering();
 				} else {
 					setTimeout(process, this.options.chunkDelay);
 				}
@@ -306,8 +311,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 				needsClustering.push(m);
 			}
-		}
-		this._checkForUncletering();
+		}	
 
 		return this;
 	},
@@ -897,7 +901,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		}
 		this._restoreUnclusters();
 		this._mergeSplitClusters();
-		this._checkForUncletering();
+		this._checkForUnclestering();
 		this._zoom = Math.round(this._map._zoom);
 		this._currentShownBounds = this._getExpandedVisibleBounds();
 	},
@@ -912,7 +916,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds, this._zoom, newBounds);
 		this._topClusterLevel._recursivelyAddChildrenToMap(null, Math.round(this._map._zoom), newBounds);
 
-		this._checkForUncletering();
+		this._checkForUnclestering();
 
 		this._currentShownBounds = newBounds;
 		return;
@@ -944,7 +948,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		}
 
 		// Instantiate the appropriate L.MarkerCluster class (animated or not).
-		this._topClusterLevel = new this._markerCluster(this, -1);
+		this._topClusterLevel = new this._markerCluster(this, -1);		
 	},
 
 	//Zoom: Zoom to start adding at (Pass this._maxZoom to start at the bottom)
@@ -1064,20 +1068,20 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 	_restoreUnclusters: function ()
 	{
-		console.log("restore clusters", this._unclusters.length);
+		//console.log("restore clusters", this._unclusters.length);
 		for (var i = this._unclusters.length - 1; i >= 0; i--) {
 			this._unclusters[i].restoreCluster();
 		}
 		this._unclusters = [];
 	},
 
-	_checkForUncletering: function ()
+	_checkForUnclestering: function ()
 	{
 		var bounds = this._getExpandedVisibleBounds();
 		var mapZoom = this._map.getZoom();
 
 		this._featureGroup.eachLayer(function (c) {
-			if (c instanceof L.MarkerCluster && bounds.contains(c._latlng) && c._zoom === mapZoom /*&& !c._isSingleParent()*/ && c.getAllChildMarkers().length < 4) {
+			if (c instanceof L.MarkerCluster && bounds.contains(c._latlng) && c._zoom === mapZoom /*&& !c._isSingleParent()*/) {
 				c.uncluster();
 			}
 		});

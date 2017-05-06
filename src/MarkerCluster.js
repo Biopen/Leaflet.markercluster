@@ -13,6 +13,8 @@ L.MarkerCluster = L.Marker.extend({
 		this._iconNeedsUpdate = true;
 		this._boundsNeedUpdate = true;
 
+		this._isUnclustered = false;
+
 		this._bounds = new L.LatLngBounds();
 
 		if (a) {
@@ -301,22 +303,74 @@ L.MarkerCluster = L.Marker.extend({
 
 	uncluster: function ()
 	{
-		var markers = this.getAllChildMarkers();
-		this.clusterHide();
+		//if (this._isUnclustered) { return ;}
 
-		//console.log("uncluster, childMarker", markers.length);
-		for (var i = markers.length - 1; i >= 0; i--)
+		var markers = this.getAllChildMarkers();
+
+		if (markers.length > 3) { return; }
+		else
 		{
-			var nm = markers[i];
-			if (nm._backupLatlng)
+			this.clusterHide();			
+
+			//console.log("uncluster, childMarker", markers.length);
+			for (var i = markers.length - 1; i >= 0; i--)
 			{
-				nm.setLatLng(nm._backupLatlng);
-				delete nm._backupLatlng;
+				var nm = markers[i];
+				if (nm._backupLatlng)
+				{
+					nm.setLatLng(nm._backupLatlng);
+					delete nm._backupLatlng;
+				}
+				
+				this._group._featureGroup.addLayer(nm);
+				if (nm._icon) { nm._icon.className += markers.length == 3 ? " uncluster3" : markers.length == 2 ? " uncluster2" : "uncluster1"; }
 			}
-			//console.log(nm);
-			this._group._featureGroup.addLayer(nm);
-		}
-		this._group._unclusters.push(this);
+
+			markers.sort(function compareMarkersLat(a, b) {  return b._latlng.lng - a._latlng.lng; });
+
+			var rightMarker = markers[0];
+			var leftMarker = markers[markers.length - 1];
+			var rightPoint = this._group._map.latLngToLayerPoint(rightMarker._latlng, 'rotateSoft');
+			var leftPoint = this._group._map.latLngToLayerPoint(leftMarker._latlng, 'rotateSoft');
+
+			console.log(rightMarker._icon ? 'icon' : 'noicon');
+
+			if (markers.length == 2)
+			{
+				 this._checkNeeToRotate(leftMarker, rightMarker, leftPoint, rightPoint, 'rotateSoft')
+			}
+			else
+			{
+				var centerMarker = markers[1];
+				var centerPoint = this._group._map.latLngToLayerPoint(centerMarker._latlng);
+
+				// check center only if extremes markers don't intersect
+				if (!this._checkNeeToRotate(leftMarker, rightMarker, leftPoint, rightPoint, 'rotate'))
+				{
+					this._checkNeeToRotate(leftMarker, centerMarker, leftPoint, centerPoint, 'rotateSoft');
+					this._checkNeeToRotate(centerMarker, rightMarker, centerPoint, rightPoint, 'rotateSoft');
+
+					if (leftMarker._icon && leftMarker._icon.className.indexOf('rotate') >= 0 && rightMarker._icon && rightMarker._icon.className.indexOf('rotate') >= 0)
+					{
+						this._clearRotateClassName(centerMarker);
+					}
+				}				
+			}		  
+
+			this._isUnclustered = true;
+			this._group._unclusters.push(this);
+		}		
+	},
+
+	_checkNeeToRotate: function (leftMarker, rightMarker, leftPoint, rightPoint, className)
+	{
+		if (rightPoint.x - leftPoint.x < 20 && Math.abs(rightPoint.y - leftPoint.y) < 30)
+		{
+			if (rightMarker._icon) { rightMarker._icon.className += " " + className + "Right"; }
+    	if (leftMarker._icon) { leftMarker._icon.className += " " + className + "Left"; }
+    	return true;
+		}	 
+		return false;
 	},
 
 	restoreCluster: function ()
@@ -328,9 +382,16 @@ L.MarkerCluster = L.Marker.extend({
 		for (var i = markers.length - 1; i >= 0; i--)
 		{
 			var nm = markers[i];
+			this._clearRotateClassName(nm);
 			//console.log(nm);
 			this._group._featureGroup.removeLayer(nm);
 		}
+		this._isUnclustered = false;
+	},
+
+	_clearRotateClassName: function (marker)
+	{
+		if (marker._icon) { marker._icon.className = marker._icon.className.replace('rotateSoftRight','').replace('rotateSoftLeft','').replace('rotateRight','').replace('rotateRight',''); }
 	},
 
 	_recursivelyRestoreChildPositions: function (zoomLevel) {

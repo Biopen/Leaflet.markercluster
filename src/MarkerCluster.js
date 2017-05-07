@@ -303,7 +303,7 @@ L.MarkerCluster = L.Marker.extend({
 
 	uncluster: function ()
 	{
-		//if (this._isUnclustered) { return ;}
+		if (this._isUnclustered) { return ;}
 
 		var markers = this.getAllChildMarkers();
 
@@ -311,19 +311,20 @@ L.MarkerCluster = L.Marker.extend({
 		else
 		{
 			this.clusterHide();			
-
 			//console.log("uncluster, childMarker", markers.length);
 			for (var i = markers.length - 1; i >= 0; i--)
 			{
-				var nm = markers[i];
+				var nm = markers[i];		
 				if (nm._backupLatlng)
 				{
 					nm.setLatLng(nm._backupLatlng);
-					delete nm._backupLatlng;
+					//delete nm._backupLatlng;
 				}
 				
 				this._group._featureGroup.addLayer(nm);
-				if (nm._icon) { nm._icon.className += markers.length == 3 ? " uncluster3" : markers.length == 2 ? " uncluster2" : "uncluster1"; }
+				this._clearRotateClassName(nm);
+				//if (nm._icon) { nm._icon.className += markers.length == 3 ? " uncluster3" : markers.length == 2 ? " uncluster2" : "uncluster1"; }
+				//console.log(nm._icon);
 			}
 
 			markers.sort(function compareMarkersLat(a, b) {  return b._latlng.lng - a._latlng.lng; });
@@ -333,7 +334,7 @@ L.MarkerCluster = L.Marker.extend({
 			var rightPoint = this._group._map.latLngToLayerPoint(rightMarker._latlng, 'rotateSoft');
 			var leftPoint = this._group._map.latLngToLayerPoint(leftMarker._latlng, 'rotateSoft');
 
-			console.log(rightMarker._icon ? 'icon' : 'noicon');
+			//console.log(rightMarker._icon ? 'icon' : 'noicon');
 
 			if (markers.length == 2)
 			{
@@ -366,6 +367,8 @@ L.MarkerCluster = L.Marker.extend({
 	{
 		if (rightPoint.x - leftPoint.x < 20 && Math.abs(rightPoint.y - leftPoint.y) < 30)
 		{
+			this._clearRotateClassName(leftMarker);
+			this._clearRotateClassName(rightMarker);
 			if (rightMarker._icon) { rightMarker._icon.className += " " + className + "Right"; }
     	if (leftMarker._icon) { leftMarker._icon.className += " " + className + "Left"; }
     	return true;
@@ -377,13 +380,12 @@ L.MarkerCluster = L.Marker.extend({
 	{
 		var markers = this.getAllChildMarkers();
 		this.clusterShow();
-
 		//console.log("resotrecluster, childMarker", markers.length);
 		for (var i = markers.length - 1; i >= 0; i--)
 		{
 			var nm = markers[i];
 			this._clearRotateClassName(nm);
-			//console.log(nm);
+			//if (!nm._icon) console.log("no icon");
 			this._group._featureGroup.removeLayer(nm);
 		}
 		this._isUnclustered = false;
@@ -391,7 +393,12 @@ L.MarkerCluster = L.Marker.extend({
 
 	_clearRotateClassName: function (marker)
 	{
-		if (marker._icon) { marker._icon.className = marker._icon.className.replace('rotateSoftRight','').replace('rotateSoftLeft','').replace('rotateRight','').replace('rotateRight',''); }
+		if (marker._icon)
+		{ 
+			marker._icon.className = marker._icon.className.replace('rotateSoftRight','').replace('rotateSoftLeft','').replace('rotateRight','').replace('rotateRight','').replace('leaflet-marker-icon', ''); 
+			// really update icon
+			marker.setIcon(L.divIcon({className: marker._icon.className, html: marker._icon.innerHTML}));	
+		}
 	},
 
 	_recursivelyRestoreChildPositions: function (zoomLevel) {

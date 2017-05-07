@@ -128,8 +128,10 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 			}
 		}
 
-		this._checkForUnclestering();
-
+		// console.log("addLayer restore");
+		// this.restoreUnclusters();
+		// console.log("addLayer checkForUnclstering");
+		// this.checkForUnclestering();
 		return this;
 	},
 
@@ -275,7 +277,8 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 					this._topClusterLevel._recursivelyAddChildrenToMap(null, this._zoom, this._currentShownBounds);
 
-					this._checkForUnclestering();
+					// this.restoreUnclusters();
+					// this.checkForUnclestering();
 				} else {
 					setTimeout(process, this.options.chunkDelay);
 				}
@@ -323,6 +326,9 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		    fg = this._featureGroup,
 		    npg = this._nonPointGroup,
 		    originalArray = true;
+
+		// console.log("removeLayer restoring clusters");
+		// this.restoreUnclusters();
 
 		if (!this._map) {
 			for (i = 0; i < l; i++) {
@@ -404,6 +410,9 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 
 		//Fix up the clusters and markers on the map
 		this._topClusterLevel._recursivelyAddChildrenToMap(null, this._zoom, this._currentShownBounds);
+
+		// console.log("removeLayer checkForUnclestering");
+		// this.checkForUnclestering();
 
 		return this;
 	},
@@ -899,9 +908,11 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		if (!this._map) { //May have been removed from the map by a zoomEnd handler
 			return;
 		}
-		this._restoreUnclusters();
+		// console.log("zoomEnd restoreUnclusters");
+		// this.restoreUnclusters();
 		this._mergeSplitClusters();
-		this._checkForUnclestering();
+		// console.log("zoomEnd checkForUnclestering");
+		// this.checkForUnclestering();
 		this._zoom = Math.round(this._map._zoom);
 		this._currentShownBounds = this._getExpandedVisibleBounds();
 	},
@@ -916,7 +927,8 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds, this._zoom, newBounds);
 		this._topClusterLevel._recursivelyAddChildrenToMap(null, Math.round(this._map._zoom), newBounds);
 
-		this._checkForUnclestering();
+		// console.log("modeEnd checkForUnclestering");
+		// this.checkForUnclestering();
 
 		this._currentShownBounds = newBounds;
 		return;
@@ -1066,7 +1078,7 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		}
 	},
 
-	_restoreUnclusters: function ()
+	restoreUnclusters: function ()
 	{
 		//console.log("restore clusters", this._unclusters.length);
 		for (var i = this._unclusters.length - 1; i >= 0; i--) {
@@ -1075,17 +1087,18 @@ L.MarkerClusterGroup = L.FeatureGroup.extend({
 		this._unclusters = [];
 	},
 
-	_checkForUnclestering: function ()
+	checkForUnclestering: function (bounds)
 	{
-		var bounds = this._getExpandedVisibleBounds();
+		bounds = bounds || this._map.getBounds();
 		var mapZoom = this._map.getZoom();
 
 		this._featureGroup.eachLayer(function (c) {
-			if (c instanceof L.MarkerCluster && bounds.contains(c._latlng) && c._zoom === mapZoom /*&& !c._isSingleParent()*/) {
+			if (c instanceof L.MarkerCluster && !c._isUnclustered && c._zoom === mapZoom && bounds.contains(c._latlng) /*&& !c._isSingleParent()*/) 
+			{
 				c.uncluster();
 			}
 		});
-		console.log("uncluster", this._unclusters.length);
+		//console.log("uncluster total", this._unclusters.length);
 	},
 
 	//Gets the maps visible bounds expanded in each direction by the size of the screen (so the user cannot see an area we do not cover in one pan)

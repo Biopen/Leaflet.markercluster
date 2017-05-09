@@ -303,11 +303,11 @@ L.MarkerCluster = L.Marker.extend({
 
 	uncluster: function ()
 	{
-		if (this._isUnclustered) { return ;}
+		if (this._isUnclustered) { return false;}
 
 		var markers = this.getAllChildMarkers();
 
-		if (markers.length > 3) { return; }
+		if (markers.length > 3) { return false; }
 		else
 		{
 			this.clusterHide();			
@@ -360,6 +360,8 @@ L.MarkerCluster = L.Marker.extend({
 
 			this._isUnclustered = true;
 			this._group._unclusters.push(this);
+
+			return true;
 		}		
 	},
 
@@ -376,10 +378,18 @@ L.MarkerCluster = L.Marker.extend({
 		return false;
 	},
 
-	restoreCluster: function ()
+	restoreCluster: function (showCluster)
 	{
 		var markers = this.getAllChildMarkers();
-		this.clusterShow();
+
+		// if showCluster wi show it right away, if not, we wait for a later "checkForUncluster" who will
+		// hide the retore cluster
+		// this is to avoid that a cluster is being shown to be hide just after
+		if (showCluster) this.clusterShow();
+		else
+		{
+			this._group._clustersWaitingToBeShown.push(this);
+		}
 		//console.log("resotrecluster, childMarker", markers.length);
 		for (var i = markers.length - 1; i >= 0; i--)
 		{
@@ -395,7 +405,7 @@ L.MarkerCluster = L.Marker.extend({
 	{
 		if (marker._icon)
 		{ 
-			marker._icon.className = marker._icon.className.replace('rotateSoftRight','').replace('rotateSoftLeft','').replace('rotateRight','').replace('rotateRight','').replace('leaflet-marker-icon', ''); 
+			marker._icon.className = marker._icon.className.replace('rotateSoftRight','').replace('rotateSoftLeft','').replace('rotateLeft','').replace('rotateRight','').replace('leaflet-marker-icon', ''); 
 			// really update icon
 			marker.setIcon(L.divIcon({className: marker._icon.className, html: marker._icon.innerHTML}));	
 		}
@@ -500,4 +510,5 @@ L.MarkerCluster = L.Marker.extend({
 
 L.MarkerClusterGroup.include({
 	_unclusters: [],
+	_clustersWaitingToBeShown: [],
 });
